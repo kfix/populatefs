@@ -45,7 +45,7 @@ void log_error(const char *s, ...)
 	exit(-1);
 }
 
-void internal_log_chdir(char *path)
+void internal_log_chdir(const char *path)
 {
 	size_t pathLen;
 
@@ -147,7 +147,7 @@ void internal_log_chdir(char *path)
 	}
 }
 
-void log_action(int actiontype, char *fname, char *target,
+void log_action(int actiontype, const char *fname, char *target,
 		mode_t mode, unsigned long uid, unsigned long gid,
 		int type, unsigned long major, unsigned long minor,
 		int overwrite )

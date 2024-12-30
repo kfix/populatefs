@@ -12,7 +12,7 @@
 static ext2_filsys fs;
 static ext2_ino_t root, cwd;
 
-ext2_ino_t name_to_inode(char *name)
+ext2_ino_t name_to_inode(const char *name)
 {
 	ext2_ino_t ino;
 	int len = strlen(name);
@@ -30,7 +30,7 @@ ext2_ino_t name_to_inode(char *name)
 	return ino;
 }
 
-__u16 inode_mode(char *name)
+__u16 inode_mode(const char *name)
 {
 	struct ext2_inode set_inode;
 	ext2_ino_t set_ino = name_to_inode(name);
@@ -86,7 +86,7 @@ __u16 ext2_fileType(__u16 mode)
 	return 0; // 0 == EXT2_FT_UNKNOWN..
 }
 
-int do_chmode(char *name, mode_t mode)
+int do_chmode(const char *name, mode_t mode)
 {
 	struct ext2_inode set_inode;
 	ext2_ino_t set_ino = name_to_inode(name);
@@ -120,7 +120,7 @@ int do_chmod(char *name, unsigned long mode)
 	return ext2fs_write_inode(fs, set_ino, &set_inode) ? 0 : 1;
 }
 
-int do_chown(char *name, uid_t uid, gid_t gid)
+int do_chown(const char *name, uid_t uid, gid_t gid)
 {
 	struct ext2_inode set_inode;
 	ext2_ino_t set_ino = name_to_inode(name);
@@ -139,11 +139,11 @@ int do_chown(char *name, uid_t uid, gid_t gid)
 	return ext2fs_write_inode(fs, set_ino, &set_inode) ? 0 : 1;
 }
 
-int do_mkdir(struct stat *st, char *name)
+int do_mkdir(struct stat *st, const char *name)
 {
-	char *cp = strrchr(name, '/');
+	const char *cp = strrchr(name, '/');
 	ext2_ino_t parent = cp ? name_to_inode(name) : cwd;
-	char *newname;
+	const char *newname;
 	ext2_ino_t ino;
 	struct ext2_inode inode;
 
@@ -151,7 +151,6 @@ int do_mkdir(struct stat *st, char *name)
 		return 0;
 
 	if (cp) {
-		*cp = 0;
 		newname = cp + 1;
 	} else newname = name;
 
@@ -186,7 +185,7 @@ int do_mkdir(struct stat *st, char *name)
 	return 1;
 }
 
-int do_chdir(char *name)
+int do_chdir(const char *name)
 {
 	ext2_ino_t inode = name_to_inode(name);
 
@@ -351,13 +350,13 @@ int do_write(char *local_file, char *name)
 	return 1;
 }
 
-int do_hardlink(struct stat *st, char *sourcename, char *name)
+int do_hardlink(struct stat *st, char *sourcename, const char *name)
 {
 	ext2_ino_t ino = name_to_inode(sourcename);
 	struct ext2_inode inode;
 	int retval;
 	ext2_ino_t dir;
-	char                *dest, *cp;
+	const char          *dest;
 	char *base_name = strrchr(sourcename, '/');
 
 	if (!ino)
@@ -371,10 +370,13 @@ int do_hardlink(struct stat *st, char *sourcename, char *name)
 	if (!(retval = ext2fs_namei(fs, root, cwd, name, &dir)))
 		dest = base_name;
 	else {
-		cp = strrchr(name, '/');
+		const char *cp = strrchr(name, '/');
 		if (cp) {
-			*cp = 0;
-			dir = name_to_inode(name);
+			size_t parent_len = cp - name;
+			char parent_path[parent_len + 1];
+			memcpy(parent_path, name, parent_len);
+			parent_path[parent_len] = '\0';
+			dir = name_to_inode(parent_path);
 			if (!dir)
 				return 0;
 			dest = cp + 1;
