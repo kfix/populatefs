@@ -27,7 +27,8 @@ int main(int argc, char **argv)
 		" -d <directory>   Add the given directory's contents into the image's root\r\n"
 		" -D <file>        Add device nodes and directories from filespec\r\n"
 		" -b <bytesize>    Override autodetection of the filesytem block size, in bytes\r\n"
-		" -s <blocknum>    Specify the location of the ext superblock (default = 1)\r\n"
+		" -s <blocknum>    Specify the block number of the ext superblock; use for offset/partitioned images\r\n"
+		"                  (default = 0: auto-locate at byte offset 1024 from image start)\r\n"
 		" -U               Squash owners making all files be owner by root:root\r\n"
 		" -P               Squash permissions on all files\r\n"
 		" -q               Same as \"-U -P\"\r\n"
@@ -50,7 +51,7 @@ int main(int argc, char **argv)
 	int squash_perms = 0;
 	int shift_uids = 0;
 	int firstRun = 1;
-	blk64_t superblock = 1;
+	blk64_t superblock = 0;  /* 0 = let ext2fs_open auto-locate via byte offset 1024 */
 	blk64_t blocksize = 0;
 	char	*tmp, *io_options;
 
