@@ -22,7 +22,7 @@
 extern int logLevel(void);
 extern void setLoggingLevel(int state);
 extern void log_error(const char *s, ...);
-extern void log_action(int actiontype, char *fname, char *target,
+extern void log_action(int actiontype, const char *fname, char *target,
 		       mode_t mode, unsigned long uid, unsigned long gid,
 		       int type, unsigned long major, unsigned long minor,
 		       int overwrite );
